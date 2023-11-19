@@ -36,9 +36,7 @@ import io
 ## Prepare the data
 """
 
-path = keras.utils.get_file(
-    "nietzsche.txt", origin="https://s3.amazonaws.com/text-datasets/nietzsche.txt"
-)
+path = "nietzsche.txt"
 with io.open(path, encoding="utf-8") as f:
     text = f.read().lower()
 text = text.replace("\n", " ")  # We remove newlines chars for nicer display
@@ -59,8 +57,8 @@ for i in range(0, len(text) - maxlen, step):
     next_chars.append(text[i + maxlen])
 print("Number of sequences:", len(sentences))
 
-x = np.zeros((len(sentences), maxlen, len(chars)), dtype=np.bool)
-y = np.zeros((len(sentences), len(chars)), dtype=np.bool)
+x = np.zeros((len(sentences), maxlen, len(chars)), dtype=np.bool_)
+y = np.zeros((len(sentences), len(chars)), dtype=np.bool_)
 for i, sentence in enumerate(sentences):
     for t, char in enumerate(sentence):
         x[i, t, char_indices[char]] = 1
