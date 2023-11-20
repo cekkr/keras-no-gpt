@@ -1,54 +1,34 @@
-from keras import Input, Model
-from keras.src.layers import LSTM, Dense, Concatenate
-from numpy import concatenate
-from tensorflow import keras
-import tensorflow as tf
-from tensorflow.keras import layers
+from model import *
+import html
+import sqlite3
 
-import numpy as np
-import random
-import io
+def trainText(text):
+    etext = html.escape(text)
 
-from tensorflow.python.layers.base import Layer
+    for ch in etext:
+        x_pred = np.zeros(len(nChars))
+        x_pred[ord(ch)] = 1
 
-"""
-## Build the model: a single LSTM layer
-"""
 
-#maxlen = 40
+# Connect to the SQLite database (replace 'your_database.db' with your actual database file)
+conn = sqlite3.connect('/Volumes/AirUSB/Datasets/docs.db')
 
-nChars = 127
-tokensBag = 256
+# Create a cursor object to interact with the database
+cursor = conn.cursor()
 
-# Define the first input
-input_1 = Input(shape=(1, nChars))
+# Replace 'your_table' with the actual table name
+table_name = 'documents'
 
-# Define the second input
-input_2 = Input(shape=(1, tokensBag))  # Replace additional_input_dim with the actual dimension of your second input
+# Select all rows from the table
+cursor.execute(f"SELECT * FROM {table_name}")
 
-# Define the first input branch
-lstm_1 = LSTM(tokensBag)(input_1)
+# Fetch all rows from the result set
+rows = cursor.fetchall()
 
-# Define the second input branch
-lstm_2 = LSTM(tokensBag)(input_2)
+# Iterate through the rows and print the data (adjust as needed)
+for row in rows:
+    print(row)
 
-# Concatenate the LSTM outputs
-merged_outputs = Concatenate()([lstm_1, lstm_2])
-
-# Output 1: Dense layer for classification
-output_1 = Dense(tokensBag, activation='softmax', name='output_1')(merged_outputs)
-
-# Output 2: Another Dense layer for regression
-output_2 = Dense(nChars, activation='linear', name='output_2')(merged_outputs)
-
-# Create the model
-model = Model(inputs=[input_1, input_2], outputs=[output_1, output_2])
-
-# Compile the model and specify the loss, optimizer, and metrics for each output
-optimizer = keras.optimizers.RMSprop(learning_rate=0.01)
-model.compile(optimizer=optimizer,
-              loss={'output_1': 'categorical_crossentropy', 'output_2': 'mean_squared_error'},
-              metrics={'output_1': 'accuracy', 'output_2': 'mae'})
-
-# Print a summary of the model architecture
-model.summary()
+# Close the cursor and the connection
+cursor.close()
+conn.close()
