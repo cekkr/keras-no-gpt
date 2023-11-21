@@ -5,6 +5,8 @@ import sqlite3
 def trainText(text):
     etext = html.escape(text)
 
+    x_bag = np.zeros(tokensBag)
+
     for ch in etext:
         x_pred = np.zeros(len(nChars))
         x_pred[ord(ch)] = 1

@@ -15,7 +15,7 @@ from tensorflow.python.layers.base import Layer
 ## Build the model: a single LSTM layer
 """
 
-#maxlen = 40
+seqLen = 16 # Sequence length for LSTM layer
 
 minChar = ord(' ')
 maxChar = ord('~')
@@ -24,10 +24,10 @@ nChars = maxChar - minChar
 tokensBag = 256
 
 # Define the first input
-input_1 = Input(shape=(1, nChars))
+input_1 = Input(shape=(seqLen, nChars))
 
 # Define the second input
-input_2 = Input(shape=(1, tokensBag))  # Replace additional_input_dim with the actual dimension of your second input
+input_2 = Input(shape=(seqLen, tokensBag))  # Replace additional_input_dim with the actual dimension of your second input
 
 # Define the first input branch
 lstm_1 = LSTM(tokensBag)(input_1)
