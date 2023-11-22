@@ -55,6 +55,8 @@ while cycles < maxCycles:
     # Iterate through the rows and print the data (adjust as needed)
     for row in rows:
         trainText(row.text)
+        cycles += 1
+        print(f"Current cycle: {cycles} / {maxCycles}")
 
 # Close the cursor and the connection
 cursor.close()
