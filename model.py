@@ -31,6 +31,8 @@ tokensBag = 256
 model = None
 
 def generateModel():
+    global model
+
     # Define the first input
     input_1 = Input(shape=(seqLen, nChars))
 
@@ -83,7 +85,7 @@ prevSeqBag = []
 prevBag = None
 
 def initBag():
-    prevBag = np.zeros(len(tokensBag))
+    prevBag = np.zeros(tokensBag)
     prevSeqChars = prevSeqBag = []
 
 def pushChar(ch):

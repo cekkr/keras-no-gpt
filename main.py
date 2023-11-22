@@ -26,13 +26,10 @@ def count_rows(table_name):
         # Print or use the row count as needed
         print(f'Total number of rows in {table_name}: {row_count}')
 
+        return row_count
+
     except sqlite3.Error as e:
         print(f"Error: {e}")
-
-    finally:
-        # Close the cursor and the connection
-        cursor.close()
-        conn.close()
 
 # Replace 'your_table' with the actual table name
 table_name = 'documents'
