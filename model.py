@@ -5,6 +5,7 @@ from tensorflow import keras
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
+from tensorflow.keras.callbacks import LambdaCallback
 
 import numpy as np
 import random
@@ -104,9 +105,12 @@ def pushChar(ch):
 def predictSeq():
     return model.predict([curSeqBag, curSeqChars])
 
+def print_callback(epoch, logs):
+    print(f"Epoch {epoch + 1}/{epochs}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
+
 def fitSeq():
     if len(prevSeqChars) > 0:
-        model.fit([prevSeqChars, prevSeqBag], [curSeqBag, curSeqChars], epochs=10, batch_size=1)
+        model.fit([prevSeqChars, prevSeqBag], [curSeqBag, curSeqChars], epochs=10, batch_size=1, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
         model.save(modelName)
 
         res = predictSeq()
