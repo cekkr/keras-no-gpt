@@ -55,3 +55,14 @@ model.compile(optimizer=optimizer,
 
 # Print a summary of the model architecture
 model.summary()
+
+curSeq = []
+
+def pushChar(ch):
+    x_pred = np.zeros(len(nChars))
+    x_pred[ord(ch)] = 1
+
+    curSeq.append(x_pred)
+
+    if(len(curSeq) > seqLen):
+        curSeq.pop()

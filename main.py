@@ -22,7 +22,7 @@ cursor = conn.cursor()
 table_name = 'documents'
 
 # Select all rows from the table
-cursor.execute(f"SELECT * FROM {table_name}")
+cursor.execute(f"SELECT * FROM {table_name} ORDER BY RANDOM() LIMIT 1")
 
 # Fetch all rows from the result set
 rows = cursor.fetchall()
