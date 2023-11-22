@@ -4,12 +4,16 @@ from numpy import concatenate
 from tensorflow import keras
 import tensorflow as tf
 from tensorflow.keras import layers
+from tensorflow.keras.models import load_model
 
 import numpy as np
 import random
 import io
+import os
 
 from tensorflow.python.layers.base import Layer
+
+modelName = 'noSql.h5'
 
 """
 ## Build the model: a single LSTM layer
@@ -23,46 +27,90 @@ nChars = maxChar - minChar
 
 tokensBag = 256
 
-# Define the first input
-input_1 = Input(shape=(seqLen, nChars))
+model = None
 
-# Define the second input
-input_2 = Input(shape=(seqLen, tokensBag))  # Replace additional_input_dim with the actual dimension of your second input
+def generateModel():
+    # Define the first input
+    input_1 = Input(shape=(seqLen, nChars))
 
-# Define the first input branch
-lstm_1 = LSTM(tokensBag)(input_1)
+    # Define the second input
+    input_2 = Input(shape=(seqLen, tokensBag))  # Replace additional_input_dim with the actual dimension of your second input
 
-# Define the second input branch
-lstm_2 = LSTM(tokensBag)(input_2)
+    # Define the first input branch
+    lstm_1 = LSTM(tokensBag)(input_1)
 
-# Concatenate the LSTM outputs
-merged_outputs = Concatenate()([lstm_1, lstm_2])
+    # Define the second input branch
+    lstm_2 = LSTM(tokensBag)(input_2)
 
-# Output 1: Dense layer for classification
-output_1 = Dense(tokensBag, activation='softmax', name='output_1')(merged_outputs)
+    # Concatenate the LSTM outputs
+    merged_outputs = Concatenate()([lstm_1, lstm_2])
 
-# Output 2: Another Dense layer for regression
-output_2 = Dense(nChars, activation='linear', name='output_2')(merged_outputs)
+    # Output 1: Dense layer for classification
+    output_1 = Dense(tokensBag, activation='softmax', name='output_1')(merged_outputs)
 
-# Create the model
-model = Model(inputs=[input_1, input_2], outputs=[output_1, output_2])
+    # Output 2: Another Dense layer for regression
+    output_2 = Dense(nChars, activation='linear', name='output_2')(merged_outputs)
 
-# Compile the model and specify the loss, optimizer, and metrics for each output
-optimizer = keras.optimizers.RMSprop(learning_rate=0.01)
-model.compile(optimizer=optimizer,
-              loss={'output_1': 'categorical_crossentropy', 'output_2': 'mean_squared_error'},
-              metrics={'output_1': 'accuracy', 'output_2': 'mae'})
+    # Create the model
+    model = Model(inputs=[input_1, input_2], outputs=[output_1, output_2])
+
+    # Compile the model and specify the loss, optimizer, and metrics for each output
+    optimizer = keras.optimizers.RMSprop(learning_rate=0.01)
+    model.compile(optimizer=optimizer,
+                  loss={'output_1': 'categorical_crossentropy', 'output_2': 'mean_squared_error'},
+                  metrics={'output_1': 'accuracy', 'output_2': 'mae'})
+
+if os.path.exists(modelName):
+    # Load the saved model
+    model = load_model(modelName)
+    print("Model loaded successfully.")
+else:
+    generateModel()
 
 # Print a summary of the model architecture
 model.summary()
 
-curSeq = []
+###
+###
+
+curSeqChars = []
+curSeqBag = []
+
+prevSeqChars = []
+prevSeqBag = []
+
+prevBag = None
+
+def initBag():
+    prevBag = np.zeros(len(tokensBag))
+    prevSeqChars = prevSeqBag = []
 
 def pushChar(ch):
     x_pred = np.zeros(len(nChars))
     x_pred[ord(ch)] = 1
 
-    curSeq.append(x_pred)
+    prevSeqChars = curSeqChars[:]
+    prevSeqBag = curSeqBag[:]
 
-    if(len(curSeq) > seqLen):
-        curSeq.pop()
+    curSeqChars.append(x_pred)
+    curSeqBag.append(prevBag)
+
+    if(len(curSeqChars) > seqLen):
+        curSeqChars.pop()
+
+    if (len(curSeqBag) > seqLen):
+        curSeqBag.pop()
+
+def predictSeq():
+    return model.predict([curSeqBag, curSeqChars])
+
+def fitSeq():
+    if len(prevSeqChars) > 0:
+        model.fit([prevSeqChars, prevSeqBag], [curSeqBag, curSeqChars], epochs=10, batch_size=1)
+        model.save(modelName)
+
+        res = predictSeq()
+        prevBag = res[0]
+
+# Default
+initBag()
