@@ -64,7 +64,7 @@ def generateModel():
     denseOut = dense2
 
     # Output 1: Dense layer for classification
-    output_1 = Dense(tokensBag, activation='softmax', name='output_1')(denseOut)
+    output_1 = Dense(tokensBag, activation='relu', name='output_1')(denseOut)
 
     # Output 2: Another Dense layer for regression
     output_2 = Dense(nChars, activation='softmax', name='output_2')(denseOut)
