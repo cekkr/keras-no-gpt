@@ -1,6 +1,8 @@
 from model import *
 import html
-import sqlite3
+import requests
+import json
+import random
 
 def trainText(text):
     etext = html.escape(text)
@@ -8,33 +10,41 @@ def trainText(text):
     for ch in etext:
         pushChar(ch)
 
+def count_rows():
+    # Replace the URL with the actual API endpoint you want to call
+    url = "https://eswayer.com/api/ml/wiki_api.php"
 
-# Connect to the SQLite database (replace 'your_database.db' with your actual database file)
-conn = sqlite3.connect('/Volumes/AirUSB/Datasets/docs.db')
+    # Make the HTTP GET request
+    response = requests.get(url)
 
-# Create a cursor object to interact with the database
-cursor = conn.cursor()
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Decode the JSON response
+        json_data = response.json()
 
-def count_rows(table_name):
-    try:
-        # Execute a SQL query to count the rows in the specified table
-        cursor.execute(f"SELECT COUNT(*) FROM {table_name}")
+        return json_data['count']
+    else:
+        # Print an error message if the request was not successful
+        print(f"Error: {response.status_code}")
 
-        # Fetch the result of the query
-        row_count = cursor.fetchone()[0]
+def getNRow(n):
+    # Replace the URL with the actual API endpoint you want to call
+    url = "https://eswayer.com/api/ml/wiki_api.php?n=" + n
 
-        # Print or use the row count as needed
-        print(f'Total number of rows in {table_name}: {row_count}')
+    # Make the HTTP GET request
+    response = requests.get(url)
 
-        return row_count
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Decode the JSON response
+        json_data = response.json()
 
-    except sqlite3.Error as e:
-        print(f"Error: {e}")
+        return json_data
+    else:
+        # Print an error message if the request was not successful
+        print(f"Error: {response.status_code}")
 
-# Replace 'your_table' with the actual table name
-table_name = 'documents'
-
-totalRows = count_rows(table_name)
+totalRows = count_rows()
 
 engrave = 10
 maxCycles = engrave * totalRows
@@ -43,18 +53,14 @@ cycles = 0
 
 while cycles < maxCycles:
 
-    # Select all rows from the table
-    cursor.execute(f"SELECT * FROM {table_name} ORDER BY RANDOM() LIMIT 1")
-
     # Fetch all rows from the result set
-    rows = cursor.fetchall()
+    n = random.randrange(totalRows)
+    row = getNRow(n)
 
-    # Iterate through the rows and print the data (adjust as needed)
-    for row in rows:
-        trainText(row.text)
-        cycles += 1
-        print(f"Current cycle: {cycles} / {maxCycles} \t {row.id}")
+    trainText(row.text)
+    cycles += 1
+    print(f"Current cycle: {cycles} / {maxCycles} \t {row.id}")
 
-# Close the cursor and the connection
-cursor.close()
-conn.close()
+
+print("Done")
+

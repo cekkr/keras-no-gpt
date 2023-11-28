@@ -28,6 +28,8 @@ nChars = maxChar - minChar
 
 tokensBag = 256
 
+epochsPerSeq = 10
+
 model = None
 
 def generateModel():
@@ -108,11 +110,11 @@ def predictSeq():
     return model.predict([curSeqBag, curSeqChars])
 
 def print_callback(epoch, logs):
-    print(f"Epoch {epoch + 1}/{epochs}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
+    print(f"Epoch {epoch + 1}/{epochsPerSeq}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
 
 def fitSeq():
     if len(prevSeqChars) > 0:
-        model.fit([prevSeqChars, prevSeqBag], [curSeqBag, curSeqChars], epochs=10, batch_size=1, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
+        model.fit([prevSeqChars, prevSeqBag], [curSeqBag, curSeqChars], epochs=epochsPerSeq, batch_size=1, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
         model.save(modelName)
 
         res = predictSeq()
