@@ -20,12 +20,11 @@ modelName = 'noSql.h5'
 ## Build the model: a single LSTM layer
 """
 
-seqLen = 16 # Sequence length for LSTM layer
-
 minChar = ord(' ')
 maxChar = ord('~')
 nChars = maxChar - minChar
 
+seqLen = 16 # Sequence length for LSTM layer
 tokensBag = 256
 
 epochsPerSeq = 10
@@ -136,6 +135,19 @@ def print_callback(epoch, logs):
 
     print(f"Epoch {epoch + 1}/{epochsPerSeq}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
 
+def pad(seq, size):
+    global seqLen
+
+    zero = None
+    while(len(seq) < seqLen):
+        if zero is None:
+            zero = np.zeros(size)
+
+        seq.insert(0, zero)
+
+    return seq
+
+
 def fitSeq():
     global batchSize
     global epochsPerSeq
@@ -145,13 +157,30 @@ def fitSeq():
     global curSeqChars
     global prevBag
 
+    global nChars
+    global tokensBag
+
     if len(prevSeqChars) > 0:
 
-        psb = np.array(prevSeqBag)
-        psc = np.array(prevSeqChars)
+        psb = prevSeqBag[:]
+        psc = prevSeqChars[:]
 
-        csb = np.array([curSeqBag[-1]])
-        csc = np.array([curSeqChars[-1]])
+        psb = pad(psb, tokensBag)
+        psc = pad(psc, nChars)
+
+        #csb = [curSeqBag[-1]]
+        #csc = [curSeqChars[-1]]
+
+        csb = curSeqBag[:]
+        csc = curSeqChars[:]
+
+        csb = pad(csb, tokensBag)
+        csc = pad(csc, nChars)
+
+        psb = np.array([psb])
+        psc = np.array([psc])
+        csb = np.array([csb])
+        csc = np.array([csc])
 
         '''
         print("prevSeqBag dim: ", psb.ndim)
@@ -161,6 +190,7 @@ def fitSeq():
         '''
 
         model.fit([psb, psc], [csb, csc], epochs=epochsPerSeq, batch_size=batchSize, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
+
         model.save(modelName)
 
         res = predictSeq()
