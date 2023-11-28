@@ -22,7 +22,7 @@ def count_rows():
         # Decode the JSON response
         json_data = response.json()
 
-        return json_data['count']
+        return int(json_data['count'])
     else:
         # Print an error message if the request was not successful
         print(f"Error: {response.status_code}")
