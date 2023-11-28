@@ -6,6 +6,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
 from tensorflow.keras.callbacks import LambdaCallback
+from keras.initializers import RandomNormal
 
 import numpy as np
 import random
@@ -41,31 +42,32 @@ def generateModel():
 
     # Define the first input
     input_1 = Input(shape=(seqLen, tokensBag))  # Replace additional_input_dim with the actual dimension of your second input
-    flatten_1 = Flatten()(input_1)
+    #flatten_1 = Flatten()(input_1)
 
     # Define the second input
     input_2 = Input(shape=(seqLen, nChars))
-    flatten_2 = Flatten()(input_2)
-
+    #flatten_2 = Flatten()(input_2)
 
     # Define the first input branch
-    lstm_1 = Dense(tokensBag*2)(flatten_1)
+    lstm_1 = LSTM(tokensBag*2, kernel_initializer=RandomNormal(mean=0.0, stddev=1.0))(input_1)
 
     # Define the second input branch
-    lstm_2 = Dense(tokensBag*2)(flatten_2)
+    lstm_2 = LSTM(tokensBag*2)(input_2)
 
     # Concatenate the LSTM outputs
     merged_outputs = Concatenate()([lstm_1, lstm_2])
 
     # Play
-    dense1 = Dense(tokensBag*2)(merged_outputs)
+    dense1 = Dense(tokensBag*2, kernel_initializer=RandomNormal(mean=0.0, stddev=1.0))(merged_outputs)
     dense2 = Dense(tokensBag*2)(dense1)
 
+    denseOut = dense2
+
     # Output 1: Dense layer for classification
-    output_1 = Dense(tokensBag, activation='softmax', name='output_1')(dense2)
+    output_1 = Dense(tokensBag, activation='softmax', name='output_1')(denseOut)
 
     # Output 2: Another Dense layer for regression
-    output_2 = Dense(nChars, activation='linear', name='output_2')(dense2)
+    output_2 = Dense(nChars, activation='softmax', name='output_2')(denseOut)
 
     # Create the model
     model = Model(inputs=[input_1, input_2], outputs=[output_1, output_2])
@@ -153,10 +155,11 @@ def predictSeq():
 
     psb_shape = (1, seqLen, tokensBag)
     psc_shape = (1, seqLen, nChars)
-    x1 = np.zeros(psb_shape)
-    x2 = np.zeros(psc_shape)
+    x1 = np.reshape(x1, psb_shape)
+    x2 = np.reshape(x2, psc_shape)
 
-    return model.predict([x1, x2])
+    res = model.predict([x1, x2])
+    return res
 
 def print_callback(epoch, logs):
     global epochsPerSeq
@@ -209,13 +212,13 @@ def fitSeq():
 
         psb_shape = (1, seqLen, tokensBag)
         psc_shape = (1, seqLen, nChars)
-        psb = np.zeros(psb_shape)
-        psc = np.zeros(psc_shape)
+        psb = np.reshape(psb, psb_shape)
+        psc = np.reshape(psc, psc_shape)
 
         csb_shape = (1, tokensBag)
         csc_shape = (1, nChars)
-        csb = np.zeros(csb_shape)
-        csc = np.zeros(csc_shape)
+        csb = np.reshape(csb, csb_shape)
+        csc = np.reshape(csc, csc_shape)
 
         print("psb shape: ", psb.shape)
         print("psc shape: ", psc.shape)
