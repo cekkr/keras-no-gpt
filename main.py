@@ -9,6 +9,7 @@ def trainText(text):
 
     for ch in etext:
         pushChar(ch)
+        fitSeq()
 
 def count_rows():
     # Replace the URL with the actual API endpoint you want to call
