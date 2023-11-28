@@ -87,12 +87,28 @@ prevSeqBag = []
 prevBag = None
 
 def initBag():
+    global prevBag
+    global prevSeqChars
+    global prevSeqBag
+
     prevBag = np.zeros(tokensBag)
     prevSeqChars = prevSeqBag = []
 
 def pushChar(ch):
+    global prevSeqChars
+    global prevSeqBag
+    global curSeqChars
+    global curSeqBag
+
+    chNum = ord(ch)
+    if chNum < minChar or chNum > maxChar:
+        #print("char out of bounds")
+        return
+
+    chNum -= minChar
+
     x_pred = np.zeros(nChars)
-    x_pred[ord(ch)] = 1
+    x_pred[chNum] = 1
 
     prevSeqChars = curSeqChars[:]
     prevSeqBag = curSeqBag[:]
@@ -106,13 +122,27 @@ def pushChar(ch):
     if (len(curSeqBag) > seqLen):
         curSeqBag.pop()
 
+    fitSeq()
+
 def predictSeq():
+    global curSeqBag
+    global curSeqChars
+
     return model.predict([curSeqBag, curSeqChars])
 
 def print_callback(epoch, logs):
+    global epochsPerSeq
+
     print(f"Epoch {epoch + 1}/{epochsPerSeq}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
 
 def fitSeq():
+    global epochsPerSeq
+    global prevSeqChars
+    global prevSeqBag
+    global curSeqBag
+    global curSeqChars
+    global prevBag
+
     if len(prevSeqChars) > 0:
         model.fit([prevSeqChars, prevSeqBag], [curSeqBag, curSeqChars], epochs=epochsPerSeq, batch_size=1, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
         model.save(modelName)

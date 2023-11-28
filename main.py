@@ -9,7 +9,6 @@ def trainText(text):
 
     for ch in etext:
         pushChar(ch)
-        fitSeq()
 
 def count_rows():
     # Replace the URL with the actual API endpoint you want to call
@@ -53,16 +52,18 @@ maxCycles = engrave * totalRows
 cycles = 0
 
 while cycles < maxCycles:
+    try:
+        # Fetch all rows from the result set
+        n = random.randrange(totalRows)
+        row = getNRow(n)
 
-    # Fetch all rows from the result set
-    n = random.randrange(totalRows)
-    row = getNRow(n)
+        print(f"Working on {row['name']}")
 
-    print(f"Working on {row['name']}")
-
-    trainText(row['text'])
-    cycles += 1
-    print(f"Current cycle: {cycles} / {maxCycles} \t {row['name']}")
+        trainText(row['text'])
+        cycles += 1
+        print(f"Current cycle: {cycles} / {maxCycles} \t {row['name']}")
+    except Exception as e:
+        print("Row error, jumped: ", e)
 
 
 print("Done")
