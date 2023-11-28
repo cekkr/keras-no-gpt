@@ -25,11 +25,11 @@ minChar = ord(' ')
 maxChar = ord('~')
 nChars = maxChar - minChar
 
-seqLen = 16 # Sequence length for LSTM layer
+seqLen = 32 # Sequence length for LSTM layer
 tokensBag = 256
 
-epochsPerSeq = 10
-batchSize = 1
+epochsPerSeq = 20
+batchSize = 50
 
 model = None
 
@@ -163,8 +163,7 @@ def predictSeq():
 
 def print_callback(epoch, logs):
     global epochsPerSeq
-
-    print(f"Epoch {epoch + 1}/{epochsPerSeq}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
+    print(f" Epoch {epoch + 1}/{epochsPerSeq}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
 
 def pad(seq, size):
     global seqLen
@@ -231,10 +230,10 @@ def fitSeq():
         csb = np.reshape(csb, csb_shape)
         csc = np.reshape(csc, csc_shape)
 
-        print("psb shape: ", psb.shape)
-        print("psc shape: ", psc.shape)
-        print("csb shape: ", csb.shape)
-        print("csc shape: ", csc.shape)
+        #print("psb shape: ", psb.shape)
+        #print("psc shape: ", psc.shape)
+        #print("csb shape: ", csb.shape)
+        #print("csc shape: ", csc.shape)
 
         input = [psb, psc]
         output = [csb, csc]

@@ -5,8 +5,8 @@ import json
 import random
 
 def trainText(text):
-    text = text.replace('\n', '<br>')
     etext = html.escape(text)
+    etext = etext.replace('\n', '<br>')
 
     for ch in etext:
         pushChar(ch)
