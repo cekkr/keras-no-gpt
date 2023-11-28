@@ -57,11 +57,11 @@ while cycles < maxCycles:
     n = random.randrange(totalRows)
     row = getNRow(n)
 
-    print(f"Working on {row.name}")
+    print(f"Working on {row['name']}")
 
-    trainText(row.text)
+    trainText(row['text'])
     cycles += 1
-    print(f"Current cycle: {cycles} / {maxCycles} \t {row.name}")
+    print(f"Current cycle: {cycles} / {maxCycles} \t {row['name']}")
 
 
 print("Done")
