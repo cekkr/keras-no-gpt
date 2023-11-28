@@ -91,7 +91,7 @@ def initBag():
     prevSeqChars = prevSeqBag = []
 
 def pushChar(ch):
-    x_pred = np.zeros(len(nChars))
+    x_pred = np.zeros(nChars)
     x_pred[ord(ch)] = 1
 
     prevSeqChars = curSeqChars[:]
