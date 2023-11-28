@@ -29,6 +29,7 @@ nChars = maxChar - minChar
 tokensBag = 256
 
 epochsPerSeq = 10
+batchSize = 10
 
 model = None
 
@@ -36,10 +37,10 @@ def generateModel():
     global model
 
     # Define the first input
-    input_1 = Input(shape=(seqLen, nChars))
+    input_1 = Input(shape=(seqLen, tokensBag))  # Replace additional_input_dim with the actual dimension of your second input
 
     # Define the second input
-    input_2 = Input(shape=(seqLen, tokensBag))  # Replace additional_input_dim with the actual dimension of your second input
+    input_2 = Input(shape=(seqLen, nChars))
 
     # Define the first input branch
     lstm_1 = LSTM(tokensBag)(input_1)
@@ -136,6 +137,7 @@ def print_callback(epoch, logs):
     print(f"Epoch {epoch + 1}/{epochsPerSeq}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
 
 def fitSeq():
+    global batchSize
     global epochsPerSeq
     global prevSeqChars
     global prevSeqBag
@@ -144,7 +146,21 @@ def fitSeq():
     global prevBag
 
     if len(prevSeqChars) > 0:
-        model.fit([prevSeqChars, prevSeqBag], [curSeqBag, curSeqChars], epochs=epochsPerSeq, batch_size=1, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
+
+        psb = np.array(prevSeqBag)
+        psc = np.array(prevSeqChars)
+
+        csb = np.array([curSeqBag[-1]])
+        csc = np.array([curSeqChars[-1]])
+
+        '''
+        print("prevSeqBag dim: ", psb.ndim)
+        print("prevSeqChars dim: ", psc.ndim)
+        print("curSeqBag dim: ", csb.ndim)
+        print("curSeqChars dim: ", csc.ndim)
+        '''
+
+        model.fit([psb, psc], [csb, csc], epochs=epochsPerSeq, batch_size=batchSize, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
         model.save(modelName)
 
         res = predictSeq()
