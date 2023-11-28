@@ -12,7 +12,7 @@ def trainText(text):
 
 def count_rows():
     # Replace the URL with the actual API endpoint you want to call
-    url = "https://eswayer.com/api/ml/wiki_api.php"
+    url = "http://eswayer.com/api/ml/wiki_api.php"
 
     # Make the HTTP GET request
     response = requests.get(url)
@@ -29,7 +29,7 @@ def count_rows():
 
 def getNRow(n):
     # Replace the URL with the actual API endpoint you want to call
-    url = "https://eswayer.com/api/ml/wiki_api.php?n=" + n
+    url = "http://eswayer.com/api/ml/wiki_api.php?n=" + n
 
     # Make the HTTP GET request
     response = requests.get(url)
@@ -56,6 +56,8 @@ while cycles < maxCycles:
     # Fetch all rows from the result set
     n = random.randrange(totalRows)
     row = getNRow(n)
+
+    print(f"Working on {row.id}")
 
     trainText(row.text)
     cycles += 1
