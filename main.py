@@ -5,6 +5,7 @@ import json
 import random
 
 def trainText(text):
+    text = text.replace('\n', '<br>')
     etext = html.escape(text)
 
     for ch in etext:
@@ -64,7 +65,7 @@ while cycles < maxCycles:
         print(f"Current cycle: {cycles} / {maxCycles} \t {row['name']}")
     except Exception as e:
         print("Row error, jumped: ", e)
-        raise e
+        #raise e
 
 
 print("Done")

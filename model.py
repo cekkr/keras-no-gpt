@@ -130,10 +130,10 @@ def pushChar(ch):
     curSeqBag.append(prevBag)
 
     if(len(curSeqChars) > seqLen):
-        curSeqChars.pop()
+        curSeqChars = curSeqChars[1:]
 
     if (len(curSeqBag) > seqLen):
-        curSeqBag.pop()
+        curSeqBag = curSeqBag[1:]
 
     fitSeq()
 
@@ -178,6 +178,17 @@ def pad(seq, size):
 
     return seq
 
+
+def printCharSeq():
+    global curSeqChars
+    global minChar
+
+    res = ""
+    for chars in curSeqChars:
+        max = np.argmax(chars)
+        res += chr(max+minChar)
+
+    print("curSeq: ", res)
 
 def fitSeq():
     global batchSize
@@ -227,6 +238,8 @@ def fitSeq():
 
         input = [psb, psc]
         output = [csb, csc]
+
+        #printCharSeq()
 
         model.fit(input, output, epochs=epochsPerSeq, batch_size=batchSize, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
 
