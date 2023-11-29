@@ -15,6 +15,8 @@ import os
 
 from tensorflow.python.layers.base import Layer
 
+#tf.config.optimizer.set_experimental_options({"auto_mixed_precision": False})
+
 modelName = 'noGpt.h5'
 
 """
@@ -72,10 +74,10 @@ def generateModel():
     model = Model(inputs=[input_1, input_2], outputs=[output_1, output_2])
 
     # Compile the model and specify the loss, optimizer, and metrics for each output
-    optimizer = keras.optimizers.RMSprop(learning_rate=0.01)
+    optimizer = keras.optimizers.Adam(learning_rate=0.1)
     model.compile(optimizer=optimizer,
-                  loss={'output_1': 'mean_squared_error', 'output_2': 'categorical_crossentropy'},
-                  metrics={'output_1': 'mae', 'output_2': 'accuracy'})
+                  loss={'output_1': 'mean_squared_error', 'output_2': 'binary_crossentropy'},
+                  metrics={'output_1': 'accuracy', 'output_2': 'accuracy'})
 
 if os.path.exists(modelName):
     # Load the saved model
@@ -157,6 +159,8 @@ def predictSeq():
     x1 = np.reshape(x1, psb_shape)
     x2 = np.reshape(x2, psc_shape)
 
+    #x2 = (x2 >= 0.5).astype(int)
+
     res = model.predict([x1, x2])
     return res
 
@@ -228,6 +232,9 @@ def fitSeq():
         csc_shape = (1, nChars)
         csb = np.reshape(csb, csb_shape)
         csc = np.reshape(csc, csc_shape)
+
+        #psc = (psc >= 0.5).astype(int)
+        #csc = (csc >= 0.5).astype(int)
 
         #print("psb shape: ", psb.shape)
         #print("psc shape: ", psc.shape)
