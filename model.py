@@ -58,10 +58,9 @@ def generateModel():
     merged_outputs = Concatenate()([lstm_1, lstm_2])
 
     # Play
-    dense1 = Dense(tokensBag*2, kernel_initializer=RandomNormal(mean=0.0, stddev=1.0))(merged_outputs)
-    dense2 = Dense(tokensBag*2)(dense1)
+    dense1 = Dense(tokensBag*2)(merged_outputs)
 
-    denseOut = dense2
+    denseOut = dense1
 
     # Output 1: Dense layer for classification
     output_1 = Dense(tokensBag, activation='relu', name='output_1')(denseOut)
@@ -75,8 +74,8 @@ def generateModel():
     # Compile the model and specify the loss, optimizer, and metrics for each output
     optimizer = keras.optimizers.RMSprop(learning_rate=0.01)
     model.compile(optimizer=optimizer,
-                  loss={'output_1': 'categorical_crossentropy', 'output_2': 'mean_squared_error'},
-                  metrics={'output_1': 'accuracy', 'output_2': 'mae'})
+                  loss={'output_1': 'mean_squared_error', 'output_2': 'categorical_crossentropy'},
+                  metrics={'output_1': 'mae', 'output_2': 'accuracy'})
 
 if os.path.exists(modelName):
     # Load the saved model
