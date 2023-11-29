@@ -23,6 +23,8 @@ modelName = 'noGpt.h5'
 ## Build the model: a single LSTM layer
 """
 
+saveEveryFit = 10
+
 minChar = ord(' ')
 maxChar = ord('~')
 nChars = maxChar - minChar
@@ -192,7 +194,12 @@ def printCharSeq():
 
     print("curSeq: ", res)
 
+fitNum = 0
+
 def fitSeq():
+    global saveEveryFit
+    global fitNum
+
     global batchSize
     global epochsPerSeq
     global prevSeqChars
@@ -248,7 +255,10 @@ def fitSeq():
 
         model.fit(input, output, epochs=epochsPerSeq, batch_size=batchSize, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
 
-        model.save(modelName)
+        if fitNum % saveEveryFit == 0:
+            model.save(modelName)
+
+        fitNum += 1
 
     res = predictSeq()
     prevBag = res[0][-1]
