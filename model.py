@@ -250,8 +250,8 @@ def fitSeq():
 
         model.save(modelName)
 
-        res = predictSeq()
-        prevBag = res[0][-1]
+    res = predictSeq()
+    prevBag = res[0][-1]
 
 # Default
 initBag()
