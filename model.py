@@ -1,5 +1,5 @@
 from keras import Input, Model
-from keras.src.layers import LSTM, Dense, Concatenate, Flatten
+from keras.layers import LSTM, Dense, Concatenate, Flatten
 from numpy import concatenate
 from tensorflow import keras
 import tensorflow as tf
