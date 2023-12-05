@@ -256,6 +256,7 @@ def fitSeq():
         model.fit(input, output, epochs=epochsPerSeq, batch_size=batchSize, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
 
         if fitNum % saveEveryFit == 0:
+            tf.keras.backend.clear_session()
             model.save(modelName)
 
         fitNum += 1
