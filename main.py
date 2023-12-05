@@ -3,6 +3,19 @@ import html
 import requests
 import json
 import random
+import psutil
+
+def get_memory_info():
+    # Get the memory information
+    memory = psutil.virtual_memory()
+
+    # Extract and print used and total memory
+    used_memory = memory.used
+    total_memory = memory.total
+
+    print(f"Used Memory: {used_memory / (1024 ** 3):.2f} GB")
+    print(f"Total Memory: {total_memory / (1024 ** 3):.2f} GB")
+
 
 def trainText(text):
     etext = html.escape(text)
