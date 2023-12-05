@@ -5,7 +5,7 @@ from tensorflow import keras
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras.models import load_model
-from tensorflow.keras.callbacks import LambdaCallback
+from tensorflow.keras.callbacks import LambdaCallback, Callback
 from keras.initializers import RandomNormal
 
 import numpy as np
@@ -166,10 +166,6 @@ def predictSeq():
     res = model.predict([x1, x2])
     return res
 
-def print_callback(epoch, logs):
-    global epochsPerSeq
-    print(f" Epoch {epoch + 1}/{epochsPerSeq}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
-
 def pad(seq, size):
     global seqLen
 
@@ -193,6 +189,15 @@ def printCharSeq():
         res += chr(max+minChar)
 
     print("curSeq: ", res)
+
+def print_callback(epoch, logs):
+    global epochsPerSeq
+    print(f" Epoch {epoch + 1}/{epochsPerSeq}, Loss: {logs['loss']}, Accuracy: {logs['output_1_accuracy']}")
+
+class BatchMetricsCallback(Callback):
+    def on_batch_end(self, batch, logs=None):
+        print(f'Batch {batch + 1} - Loss: {logs["loss"]:.4f}, Accuracy: {logs["accuracy"]:.4f}')
+
 
 fitNum = 0
 
@@ -253,7 +258,10 @@ def fitSeq():
 
         #printCharSeq()
 
-        model.fit(input, output, epochs=epochsPerSeq, batch_size=batchSize, callbacks=[LambdaCallback(on_epoch_end=print_callback)])
+        # Create an instance of the custom callback
+        batch_metrics_callback = BatchMetricsCallback()
+
+        model.fit(input, output, epochs=epochsPerSeq, batch_size=batchSize, callbacks=[batch_metrics_callback])
 
         if fitNum % saveEveryFit == 0:
             tf.keras.backend.clear_session()
