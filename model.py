@@ -53,18 +53,19 @@ def generateModel():
     #flatten_2 = Flatten()(input_2)
 
     # Define the first input branch
-    lstm_1 = LSTM(tokensBag*2, kernel_initializer=RandomNormal(mean=0.0, stddev=1.0))(input_1)
+    lstm_1 = LSTM(tokensBag*4, kernel_initializer=RandomNormal(mean=0.0, stddev=1.0))(input_1)
 
     # Define the second input branch
-    lstm_2 = LSTM(tokensBag*2)(input_2)
+    lstm_2 = LSTM(tokensBag*4)(input_2)
 
     # Concatenate the LSTM outputs
     merged_outputs = Concatenate()([lstm_1, lstm_2])
 
     # Play
-    dense1 = Dense(tokensBag*2)(merged_outputs)
+    dense1 = Dense(tokensBag * 4)(merged_outputs)
+    dense2 = Dense(tokensBag * 4)(dense1)
 
-    denseOut = dense1
+    denseOut = dense2
 
     # Output 1: Dense layer for classification
     output_1 = Dense(tokensBag, activation='relu', name='output_1')(denseOut)
@@ -196,7 +197,7 @@ def print_callback(epoch, logs):
 
 class BatchMetricsCallback(Callback):
     def on_batch_end(self, batch, logs=None):
-        print(f'Batch {batch + 1} - Loss: {logs["loss"]:.4f}, Accuracy: {logs["accuracy"]:.4f}')
+        print(f'Batch {batch + 1} - Loss: {logs["loss"]:.4f}, Accuracy: {logs["output_1_accuracy"]:.4f}')
 
 
 fitNum = 0
