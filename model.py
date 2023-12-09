@@ -125,6 +125,9 @@ class Batch:
         global tokensBag
         global nChars
 
+        ap1 = []
+        ap2 = []
+
         p1 = []
         p2 = []
 
@@ -134,13 +137,16 @@ class Batch:
         for op in self.curOps:
             op.pushChar()
 
+            psb = op.prevSeqBag[:]
+            psc = op.prevSeqChars[:]
+
+            psb = pad(psb, tokensBag)
+            psc = pad(psc, nChars)
+
+            ap1.append(psb)
+            ap2.append(psc)
+
             if len(op.prevSeqChars) > 0: # is not the first cycle
-                psb = op.prevSeqBag[:]
-                psc = op.prevSeqChars[:]
-
-                psb = pad(psb, tokensBag)
-                psc = pad(psc, nChars)
-
                 csb = op.curSeqBag[-1]
                 csc = op.curSeqChars[-1]
 
@@ -150,9 +156,29 @@ class Batch:
                 c1.append(csb)
                 c2.append(csc)
 
-        return [[p1, p2], [c1, c2]]
+        return [[p1, p2], [c1, c2], [ap1, ap2]]
 
+    def getPredict(self):
+        global tokensBag
+        global nChars
 
+        ap1 = []
+        ap2 = []
+
+        for op in self.curOps:
+            op.pushChar()
+
+            psb = op.prevSeqBag[:]
+            psc = op.prevSeqChars[:]
+
+            psb = pad(psb, tokensBag)
+            psc = pad(psc, nChars)
+
+            ap1.append(psb)
+            ap2.append(psc)
+
+        return [ap1, ap2]
+    
     class Operation:
         def __init__(self, content):
             self.content = content
@@ -188,7 +214,7 @@ class Batch:
             self.prevSeqBag = self.curSeqBag[:]
 
             self.curSeqChars.append(x_pred)
-            self.curSeqBag.append(prevBag)
+            self.curSeqBag.append(self.prevBag)
 
             if len(self.curSeqChars) > seqLen:
                 self.curSeqChars = self.curSeqChars[1:]
@@ -247,15 +273,15 @@ def pushChar(ch):
 
     fitSeq()
 
-def predictSeq():
-    global curSeqBag
-    global curSeqChars
+def predictSeq(seq):
     global tokensBag
     global nChars
     global seqLen
 
-    x1 = curSeqBag[:]
-    x2 = curSeqChars[:]
+    x1 = seq[0]
+    x2 = seq[1]
+
+    nseq = len(x1)
 
     x1 = pad(x1, tokensBag)
     x2 = pad(x2, nChars)
@@ -263,12 +289,10 @@ def predictSeq():
     x1 = np.array(x1)
     x2 = np.array(x2)
 
-    psb_shape = (1, seqLen, tokensBag)
-    psc_shape = (1, seqLen, nChars)
+    psb_shape = (nseq, seqLen, tokensBag)
+    psc_shape = (nseq, seqLen, nChars)
     x1 = np.reshape(x1, psb_shape)
     x2 = np.reshape(x2, psc_shape)
-
-    #x2 = (x2 >= 0.5).astype(int)
 
     res = model.predict([x1, x2])
     return res
@@ -347,8 +371,10 @@ def fitSeq():
 
         fitNum += 1
 
-    res = predictSeq()
-    prevBag = res[0][-1]
+    res = predictSeq(train[2])
+
+    for x in range(0, len(res)):
+        batch.curOps[x].prevBag = res[x]
 
 # Default
 initBag()
