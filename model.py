@@ -94,6 +94,65 @@ model.summary()
 
 ###
 ###
+###
+
+class Batch:
+    def __init__(self):
+        self.curOps = []
+
+    def addOp(self, op):
+        self.curOps.append(op)
+
+    def remOp(self, op):
+        self.curOps.remove(op)
+
+    def len(self):
+        len(self.curOps)
+
+    class Operation:
+        def __init__(self, content):
+            self.content = content
+            self.pos = 0
+
+            self.prevSeqChars = []
+            self.prevSeqBag = []
+
+            self.curSeqChars = []
+            self.curSeqBag = []
+
+        def next(self):
+            self.pos += 1
+
+        def pushChar(self):
+            global minChar
+            global maxChar
+            global seqLen
+
+            ch = self.content[self.pos]
+            chNum = ord(ch)
+            if chNum < minChar or chNum > maxChar:
+                # print("char out of bounds")
+                return
+
+            chNum -= minChar
+
+            x_pred = np.zeros(nChars)
+            x_pred[chNum] = 1
+
+            self.prevSeqChars = self.curSeqChars[:]
+            self.prevSeqBag = self.curSeqBag[:]
+
+            self.curSeqChars.append(x_pred)
+            self.curSeqBag.append(prevBag)
+
+            if len(self.curSeqChars) > seqLen:
+                self.curSeqChars = self.curSeqChars[1:]
+
+            if len(self.curSeqBag) > seqLen:
+                self.curSeqBag = self.curSeqBag[1:]
+
+
+batch = Batch()
 
 curSeqChars = []
 curSeqBag = []
@@ -216,6 +275,8 @@ def fitSeq():
 
     global nChars
     global tokensBag
+
+    global batch
 
     if len(prevSeqChars) > 0:
 

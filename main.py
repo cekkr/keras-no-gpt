@@ -4,6 +4,8 @@ import requests
 import json
 import random
 import psutil
+import threading
+import time
 
 def get_memory_info():
     # Get the memory information
@@ -15,6 +17,8 @@ def get_memory_info():
 
     print(f"Used Memory: {used_memory / (1024 ** 3):.2f} GB")
     print(f"Total Memory: {total_memory / (1024 ** 3):.2f} GB")
+
+    return used_memory / total_memory
 
 
 def trainText(text):
@@ -58,12 +62,60 @@ def getNRow(n):
         # Print an error message if the request was not successful
         print(f"Error: {response.status_code}")
 
+def wdata_count_rows():
+    # Replace the URL with the actual API endpoint you want to call
+    url = "https://eswayer.com/api/ml/wikidata_api.php"
+
+    # Make the HTTP GET request
+    response = requests.get(url)
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Decode the JSON response
+        json_data = response.json()
+
+        return int(json_data['count'])
+    else:
+        # Print an error message if the request was not successful
+        print(f"Error: {response.status_code}")
+
+def wdata_getNRow(n):
+    # Replace the URL with the actual API endpoint you want to call
+    url = "https://eswayer.com/api/ml/wikidata_api.php?n=" + str(n)
+
+    # Make the HTTP GET request
+    response = requests.get(url)
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        # Decode the JSON response
+        json_data = response.json()
+
+        return json_data
+    else:
+        # Print an error message if the request was not successful
+        print(f"Error: {response.status_code}")
+
 totalRows = count_rows()
 
 engrave = 10
 maxCycles = engrave * totalRows
 
 cycles = 0
+
+curBatchSize = 1
+curBatch = []
+
+def collectBatch():
+    global curBatchSize
+    global curBatch
+
+    while True:
+        while len(curBatch) < curBatchSize:
+            time.sleep(100)
+
+threadBatch = threading.Thread(target=collectBatch)
+threadBatch.start()
 
 while cycles < maxCycles:
     try:
