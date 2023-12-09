@@ -96,6 +96,18 @@ model.summary()
 ###
 ###
 
+def pad(seq, size):
+    global seqLen
+
+    zero = None
+    while(len(seq) < seqLen):
+        if zero is None:
+            zero = np.zeros(size)
+
+        seq.insert(0, zero)
+
+    return seq
+
 class Batch:
     def __init__(self):
         self.curOps = []
@@ -108,6 +120,38 @@ class Batch:
 
     def len(self):
         len(self.curOps)
+
+    def getTrain(self):
+        global tokensBag
+        global nChars
+
+        p1 = []
+        p2 = []
+
+        c1 = []
+        c2 = []
+
+        for op in self.curOps:
+            op.pushChar()
+
+            if len(op.prevSeqChars) > 0: # is not the first cycle
+                psb = op.prevSeqBag[:]
+                psc = op.prevSeqChars[:]
+
+                psb = pad(psb, tokensBag)
+                psc = pad(psc, nChars)
+
+                csb = op.curSeqBag[-1]
+                csc = op.curSeqChars[-1]
+
+                p1.append(psb)
+                p2.append(psc)
+
+                c1.append(csb)
+                c2.append(csc)
+
+        return [[p1, p2], [c1, c2]]
+
 
     class Operation:
         def __init__(self, content):
@@ -127,6 +171,7 @@ class Batch:
             global minChar
             global maxChar
             global seqLen
+            global nChars
 
             ch = self.content[self.pos]
             chNum = ord(ch)
@@ -150,6 +195,8 @@ class Batch:
 
             if len(self.curSeqBag) > seqLen:
                 self.curSeqBag = self.curSeqBag[1:]
+
+            self.next()
 
 
 batch = Batch()
@@ -226,18 +273,6 @@ def predictSeq():
     res = model.predict([x1, x2])
     return res
 
-def pad(seq, size):
-    global seqLen
-
-    zero = None
-    while(len(seq) < seqLen):
-        if zero is None:
-            zero = np.zeros(size)
-
-        seq.insert(0, zero)
-
-    return seq
-
 
 def printCharSeq():
     global curSeqChars
@@ -278,42 +313,23 @@ def fitSeq():
 
     global batch
 
-    if len(prevSeqChars) > 0:
+    train = batch.getTrain()
 
-        psb = prevSeqBag[:]
-        psc = prevSeqChars[:]
+    if len(train[0]) > 0:
+        x = train[0]
+        y = train[1]
 
-        psb = pad(psb, tokensBag)
-        psc = pad(psc, nChars)
+        nbatches = len(x[0])
 
-        csb = curSeqBag[-1]
-        csc = curSeqChars[-1]
+        psb_shape = (nbatches, seqLen, tokensBag)
+        psc_shape = (nbatches, seqLen, nChars)
+        psb = np.reshape(x[0], psb_shape)
+        psc = np.reshape(x[1], psc_shape)
 
-        #csb = pad(csb, tokensBag)
-        #csc = pad(csc, nChars)
-
-        psb = np.array(psb)
-        psc = np.array(psc)
-        csb = np.array(csb)
-        csc = np.array(csc)
-
-        psb_shape = (1, seqLen, tokensBag)
-        psc_shape = (1, seqLen, nChars)
-        psb = np.reshape(psb, psb_shape)
-        psc = np.reshape(psc, psc_shape)
-
-        csb_shape = (1, tokensBag)
-        csc_shape = (1, nChars)
-        csb = np.reshape(csb, csb_shape)
-        csc = np.reshape(csc, csc_shape)
-
-        #psc = (psc >= 0.5).astype(int)
-        #csc = (csc >= 0.5).astype(int)
-
-        #print("psb shape: ", psb.shape)
-        #print("psc shape: ", psc.shape)
-        #print("csb shape: ", csb.shape)
-        #print("csc shape: ", csc.shape)
+        csb_shape = (nbatches, tokensBag)
+        csc_shape = (nbatches, nChars)
+        csb = np.reshape(y[0], csb_shape)
+        csc = np.reshape(y[1], csc_shape)
 
         input = [psb, psc]
         output = [csb, csc]
