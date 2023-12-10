@@ -123,7 +123,7 @@ class Batch:
             self.remOp(op)
 
     def size(self):
-        len(self.curOps)
+        return len(self.curOps)
 
     def getTrain(self):
         global tokensBag
@@ -201,6 +201,8 @@ class Batch:
         def __init__(self, content):
             self.content = content
             self.pos = 0
+
+            self.prevBag = []
 
             self.prevSeqChars = []
             self.prevSeqBag = []
@@ -304,6 +306,7 @@ def predictSeq(seq):
 
     nseq = len(x1)
 
+    #if not isinstance(x1, np.ndarray):
     x1 = pad(x1, tokensBag)
     x2 = pad(x2, nChars)
 
@@ -360,12 +363,12 @@ def fitSeq():
 
     train = batch.getTrain()
 
-    if len(train[0]) > 0:
-        x = train[0]
-        y = train[1]
+    x = train[0]
+    y = train[1]
 
-        nbatches = len(x[0])
+    nbatches = len(x[0])
 
+    if nbatches > 0:
         psb_shape = (nbatches, seqLen, tokensBag)
         psc_shape = (nbatches, seqLen, nChars)
         psb = np.reshape(x[0], psb_shape)

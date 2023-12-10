@@ -65,7 +65,7 @@ def getNRow(n):
 
 def wdata_count_rows():
     # Replace the URL with the actual API endpoint you want to call
-    url = "https://eswayer.com/api/ml/wikidata_api.php"
+    url = "http://eswayer.com/api/ml/wikidata_api.php"
 
     # Make the HTTP GET request
     response = requests.get(url)
@@ -82,7 +82,7 @@ def wdata_count_rows():
 
 def wdata_getNRow(n):
     # Replace the URL with the actual API endpoint you want to call
-    url = "https://eswayer.com/api/ml/wikidata_api.php?n=" + str(n)
+    url = "http://eswayer.com/api/ml/wikidata_api.php?n=" + str(n)
 
     # Make the HTTP GET request
     response = requests.get(url)
@@ -125,18 +125,33 @@ def collectBatch():
             else:
                 n = random.randrange(totalWRows)
                 row = wdata_getNRow(n)
+                row['text'] = row['sentence']
+
+            print("New data row fetched")
 
             curBatch.append(row)
 
-        time.sleep(100)
+        time.sleep(1)
 
 threadBatch = threading.Thread(target=collectBatch)
 threadBatch.start()
 
 lastRamUsage = 0
 
-while cycles < maxCycles:
+while True:
     try:
+        while batch.size() < curBatchSize:
+            print("check batch")
+            if len(curBatch) == 0:
+                # you'll be more lucky next time
+                time.sleep(1)
+            else:
+                cont = curBatch.pop(0)
+                op = Batch.Operation(cont['text'])
+                batch.addOp(op)
+
+        fitSeq()
+        lastRamUsage = get_memory_info()
 
         if lastRamUsage < 0.75:
             curBatchSize += 1
@@ -144,19 +159,15 @@ while cycles < maxCycles:
         if lastRamUsage > 0.85:
             curBatchSize -= 1
 
-        while batch.size() < curBatchSize:
-            cont = curBatch.pop(0)
-            op = Batch.Operation(cont)
-            batch.addOp(op)
-
-        fitSeq()
-        lastRamUsage = get_memory_info()
+        if curBatchSize == 0:
+            print("seems there is no enough ram available...")
 
         cycles += 1
         print(f"Current cycle: {cycles}")
+
     except Exception as e:
         print("Row error, jumped: ", e)
-        #raise e
+        raise e
 
 
 print("Done")
