@@ -167,7 +167,7 @@ while True:
 
     except Exception as e:
         print("Row error, jumped: ", e)
-        raise e
+        #raise e
 
 
 print("Done")

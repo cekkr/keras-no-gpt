@@ -199,10 +199,12 @@ class Batch:
 
     class Operation:
         def __init__(self, content):
+            global tokensBag
+
             self.content = content
             self.pos = 0
 
-            self.prevBag = []
+            self.prevBag = np.zeros(tokensBag)
 
             self.prevSeqChars = []
             self.prevSeqBag = []
@@ -304,14 +306,14 @@ def predictSeq(seq):
     x1 = seq[0]
     x2 = seq[1]
 
-    nseq = len(x1)
-
-    #if not isinstance(x1, np.ndarray):
-    x1 = pad(x1, tokensBag)
-    x2 = pad(x2, nChars)
+    for i in range(0, len(x1)):
+        x1[i] = pad(x1[i], tokensBag)
+        x2[i] = pad(x2[i], nChars)
 
     x1 = np.array(x1)
     x2 = np.array(x2)
+
+    nseq = len(x1)
 
     psb_shape = (nseq, seqLen, tokensBag)
     psc_shape = (nseq, seqLen, nChars)
@@ -369,6 +371,11 @@ def fitSeq():
     nbatches = len(x[0])
 
     if nbatches > 0:
+        x[0] = np.array(x[0])
+        x[1] = np.array(x[1])
+        y[0] = np.array(y[0])
+        y[1] = np.array(y[1])
+
         psb_shape = (nbatches, seqLen, tokensBag)
         psc_shape = (nbatches, seqLen, nChars)
         psb = np.reshape(x[0], psb_shape)
@@ -397,8 +404,8 @@ def fitSeq():
 
     res = predictSeq(train[2])
 
-    for x in range(0, len(res)):
-        batch.curOps[x].prevBag = res[x]
+    for x in range(0, len(res[0])):
+        batch.curOps[x].prevBag = res[0][x]
 
 # Default
 initBag()
