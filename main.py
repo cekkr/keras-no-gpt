@@ -133,8 +133,16 @@ def collectBatch():
 threadBatch = threading.Thread(target=collectBatch)
 threadBatch.start()
 
+lastRamUsage = 0
+
 while cycles < maxCycles:
     try:
+
+        if lastRamUsage < 0.75:
+            curBatchSize += 1
+
+        if lastRamUsage > 0.85:
+            curBatchSize -= 1
 
         while batch.size() < curBatchSize:
             cont = curBatch.pop(0)
@@ -142,6 +150,7 @@ while cycles < maxCycles:
             batch.addOp(op)
 
         fitSeq()
+        lastRamUsage = get_memory_info()
 
         cycles += 1
         print(f"Current cycle: {cycles}")
