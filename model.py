@@ -118,7 +118,11 @@ class Batch:
     def remOp(self, op):
         self.curOps.remove(op)
 
-    def len(self):
+    def remOps(self, ops):
+        for op in ops:
+            self.remOp(op)
+
+    def size(self):
         len(self.curOps)
 
     def getTrain(self):
@@ -134,8 +138,13 @@ class Batch:
         c1 = []
         c2 = []
 
+        finished = []
+
         for op in self.curOps:
             op.pushChar()
+
+            if op.finish():
+                finished.append(op)
 
             psb = op.prevSeqBag[:]
             psc = op.prevSeqChars[:]
@@ -156,6 +165,8 @@ class Batch:
                 c1.append(csb)
                 c2.append(csc)
 
+        self.remOps(finished)
+
         return [[p1, p2], [c1, c2], [ap1, ap2]]
 
     def getPredict(self):
@@ -165,8 +176,13 @@ class Batch:
         ap1 = []
         ap2 = []
 
+        finished = []
+
         for op in self.curOps:
             op.pushChar()
+
+            if op.finish():
+                finished.append(op)
 
             psb = op.prevSeqBag[:]
             psc = op.prevSeqChars[:]
@@ -177,8 +193,10 @@ class Batch:
             ap1.append(psb)
             ap2.append(psc)
 
+        self.remOps(finished)
+
         return [ap1, ap2]
-    
+
     class Operation:
         def __init__(self, content):
             self.content = content
@@ -192,6 +210,9 @@ class Batch:
 
         def next(self):
             self.pos += 1
+
+        def finish(self):
+            return self.pos >= len(self.content)
 
         def pushChar(self):
             global minChar

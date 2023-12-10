@@ -6,6 +6,7 @@ import random
 import psutil
 import threading
 import time
+import random
 
 def get_memory_info():
     # Get the memory information
@@ -97,6 +98,7 @@ def wdata_getNRow(n):
         print(f"Error: {response.status_code}")
 
 totalRows = count_rows()
+totalWRows = wdata_count_rows()
 
 engrave = 10
 maxCycles = engrave * totalRows
@@ -109,25 +111,40 @@ curBatch = []
 def collectBatch():
     global curBatchSize
     global curBatch
+    global totalRows
+    global totalWRows
 
     while True:
         while len(curBatch) < curBatchSize:
-            time.sleep(100)
+            rnum = random.randint(0, 2)
+
+            row = None
+            if rnum == 0:
+                n = random.randrange(totalRows)
+                row = getNRow(n)
+            else:
+                n = random.randrange(totalWRows)
+                row = wdata_getNRow(n)
+
+            curBatch.append(row)
+
+        time.sleep(100)
 
 threadBatch = threading.Thread(target=collectBatch)
 threadBatch.start()
 
 while cycles < maxCycles:
     try:
-        # Fetch all rows from the result set
-        n = random.randrange(totalRows)
-        row = getNRow(n)
 
-        print(f"Working on {row['name']}")
+        while batch.size() < curBatchSize:
+            cont = curBatch.pop(0)
+            op = Batch.Operation(cont)
+            batch.addOp(op)
 
-        trainText(row['text'])
+        fitSeq()
+
         cycles += 1
-        print(f"Current cycle: {cycles} / {maxCycles} \t {row['name']}")
+        print(f"Current cycle: {cycles}")
     except Exception as e:
         print("Row error, jumped: ", e)
         #raise e
